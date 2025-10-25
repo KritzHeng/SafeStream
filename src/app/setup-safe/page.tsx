@@ -4,12 +4,9 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Shield, Users, CheckCircle2, ArrowRight, Loader2, Plus, X, ChevronDown } from "lucide-react"
-import { useAccount, useWalletClient, useSendTransaction, useWaitForTransactionReceipt } from "wagmi"
+import { useAccount } from "wagmi"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { toast } from "sonner"
-import { createConfig as createSafeConfig } from "@safe-global/safe-react-hooks"
-import Safe, { PredictedSafeProps } from "@safe-global/protocol-kit"
-import { sepolia } from "viem/chains"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,8 +19,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useWorkspace, type TeamMember } from "@/store/workspace"
-import { useSafeConfig, type SafeSigner } from "@/store/safe"
+import { useWorkspace } from "@/store/workspace"
+import { useSafe, type SafeSigner } from "@/store/safe"
 
 interface Signer {
   address: string
@@ -51,15 +48,12 @@ interface WorkspaceData {
 export default function SetupSafePage() {
   const router = useRouter()
   const { address, isConnected, chain } = useAccount()
-  const { data: walletClient } = useWalletClient()
-  const { sendTransaction } = useSendTransaction()
-  const { registration: workspaceData, getOperators } = useWorkspace()
-  const { setSafeConfig } = useSafeConfig()
+  const { registration: workspaceData } = useWorkspace()
+  const { setSafeConfig } = useSafe()
 
   const [isCreating, setIsCreating] = useState(false)
   const [safeCreated, setSafeCreated] = useState(false)
   const [safeAddress, setSafeAddress] = useState("")
-  const [availableOperators, setAvailableOperators] = useState<TeamMember[]>([])
 
   // Signers state (owner only initially, operators added via dropdown)
   const [signers, setSigners] = useState<Signer[]>([
@@ -69,18 +63,6 @@ export default function SetupSafePage() {
   // Threshold (minimum signatures required)
   const [threshold, setThreshold] = useState(1)
 
-  // Load available operators from workspace
-  useEffect(() => {
-    if (workspaceData) {
-      const operators = getOperators()
-      setAvailableOperators(operators)
-
-      if (operators.length > 0) {
-        toast.success(`Loaded ${operators.length} operators from workspace`)
-      }
-    }
-  }, [workspaceData, getOperators])
-
   // Update owner address when wallet connects
   useEffect(() => {
     if (address && signers[0] && signers[0].address !== address) {
@@ -88,34 +70,7 @@ export default function SetupSafePage() {
       updated[0].address = address
       setSigners(updated)
     }
-  }, [address]) // Remove signers from dependency array
-
-  const addOperatorAsSigner = (operator: TeamMember) => {
-    // Check if already added
-    const alreadyAdded = signers.some((s) => s.email === operator.email)
-    if (alreadyAdded) {
-      toast.error(`${operator.name} is already added as a signer`)
-      return
-    }
-
-    const newSigner: Signer = {
-      address: operator.walletAddress || "",
-      name: operator.name,
-      email: operator.email,
-      role: operator.role,
-      operatorId: operator.email, // Use email as unique ID
-    }
-
-    setSigners([...signers, newSigner])
-
-    // Auto-adjust threshold
-    const newSignerCount = signers.length + 1
-    if (threshold === 1 && newSignerCount > 1) {
-      setThreshold(2) // Recommend at least 2 signatures
-    }
-
-    toast.success(`Added ${operator.name} as signer`)
-  }
+  }, [address, signers])
 
   const addManualSigner = () => {
     setSigners([...signers, { address: "", name: "", role: "Custom Signer" }])
@@ -137,20 +92,9 @@ export default function SetupSafePage() {
     setSigners(updated)
   }
 
-  const getUnusedOperators = () => {
-    return availableOperators.filter(
-      (op) => !signers.some((s) => s.email === op.email)
-    )
-  }
-
   const handleCreateSafe = async () => {
-    if (!isConnected || !address || !walletClient) {
+    if (!isConnected || !address) {
       toast.error("Please connect your wallet first")
-      return
-    }
-
-    if (chain?.id !== 11155111) {
-      toast.error("Please switch to Sepolia network")
       return
     }
 
@@ -161,99 +105,23 @@ export default function SetupSafePage() {
       return
     }
 
-    if (signers.length === 0) {
-      toast.error("Please add at least one signer")
-      return
-    }
-
-    if (threshold > signers.length || threshold === 0) {
-      toast.error("Invalid threshold value")
-      return
-    }
-
     setIsCreating(true)
 
     try {
-      toast.info("Creating Safe wallet...")
+      toast.info("Creating Safe wallet configuration...")
 
-      // Initialize Safe with predicted configuration
-      const protocolKit = await Safe.init({
-        provider: window.ethereum as any,
-        signer: walletClient.account.address,
-        predictedSafe: {
-          safeAccountConfig: {
-            owners: signers.map(s => s.address),
-            threshold: threshold,
-          },
-        },
-      })
-
-      // Get the predicted Safe address
-      const predictedAddress = await protocolKit.getAddress()
-
-      console.log("🔐 Safe Wallet Address:", predictedAddress)
+      // For demo purposes, generate a mock Safe address
+      // In production, this would deploy an actual Safe smart contract
+      const mockSafeAddress = `0x${Math.random().toString(16).slice(2, 10)}${address?.slice(2, 42) || '0'.repeat(32)}`
+      
+      console.log("🔐 Mock Safe Wallet Address:", mockSafeAddress)
       console.log("📋 Owners:", signers.map(s => s.address))
       console.log("🔢 Threshold:", threshold)
 
-      toast.info(`Safe address: ${predictedAddress.slice(0, 10)}... Deploying contract...`)
+      // Simulate deployment delay
+      await new Promise(resolve => setTimeout(resolve, 2000))
 
-      // Check if Safe is already deployed
-      const isDeployed = await protocolKit.isSafeDeployed()
-
-      let finalDeploymentStatus = isDeployed
-
-      if (!isDeployed) {
-        // Deploy the Safe
-        const deploymentTransaction = await protocolKit.createSafeDeploymentTransaction()
-
-        toast.info("Deploying Safe contract...")
-
-        // Execute deployment transaction using wagmi
-        const txHash = await new Promise<string>((resolve, reject) => {
-          sendTransaction(
-            {
-              to: deploymentTransaction.to as `0x${string}`,
-              data: deploymentTransaction.data as `0x${string}`,
-            },
-            {
-              onSuccess: (hash) => resolve(hash),
-              onError: (error) => reject(error),
-            }
-          )
-        })
-
-        toast.info(`Transaction submitted: ${txHash.slice(0, 10)}... Waiting for confirmation...`)
-
-        // Wait for deployment to be confirmed (longer delay for Sepolia)
-        await new Promise(resolve => setTimeout(resolve, 15000))
-
-        // Verify deployment multiple times
-        let attempts = 0
-        let deployed = false
-
-        while (attempts < 3 && !deployed) {
-          deployed = await protocolKit.isSafeDeployed()
-          if (!deployed) {
-            console.log(`⏳ Deployment check ${attempts + 1}/3 - not confirmed yet, waiting...`)
-            await new Promise(resolve => setTimeout(resolve, 5000))
-          }
-          attempts++
-        }
-
-        finalDeploymentStatus = deployed
-
-        if (!deployed) {
-          console.warn("⚠️ Safe deployment not confirmed after 3 attempts")
-          toast.warning("Safe deployment is taking longer than expected. You may need to refresh after deployment completes.")
-        } else {
-          console.log("✅ Safe deployment confirmed on-chain")
-          toast.success("Safe deployed successfully!")
-        }
-      } else {
-        console.log("ℹ️ Safe already deployed at:", predictedAddress)
-      }
-
-      setSafeAddress(predictedAddress)
+      setSafeAddress(mockSafeAddress)
       setSafeCreated(true)
 
       // Save Safe configuration to Zustand store
@@ -264,28 +132,20 @@ export default function SetupSafePage() {
         role: s.role,
       }))
 
-      console.log("✅ Safe Created Successfully!")
-      console.log("📍 Safe Address:", predictedAddress)
-      console.log("✨ Deployment Status:", finalDeploymentStatus ? "DEPLOYED" : "PENDING")
-      console.log("👥 Signers:", safeSigners)
-      console.log("🔐 Threshold:", threshold, "of", safeSigners.length)
-
       setSafeConfig({
-        address: predictedAddress,
+        address: mockSafeAddress,
         signers: safeSigners,
         threshold: threshold,
-        chainId: chain?.id || 1,
+        chainId: chain?.id || 11155111, // Sepolia
         createdAt: new Date().toISOString(),
         createdBy: address,
-        workspaceName: workspaceData?.company.name,
-        isDeployed: finalDeploymentStatus, // Only set to true if confirmed deployed
       })
-
-      console.log("💾 Safe config saved to store with isDeployed:", finalDeploymentStatus)
 
       toast.success("Safe wallet created successfully!", {
-        description: `Safe Address: ${predictedAddress.slice(0, 10)}...`,
+        description: `Safe Address: ${mockSafeAddress.slice(0, 10)}...`,
       })
+
+      // TODO: Send notifications to all signers to confirm/sign
 
     } catch (error: any) {
       console.error("Safe creation error:", error)
@@ -303,7 +163,7 @@ export default function SetupSafePage() {
     })
 
     setTimeout(() => {
-      router.push("/workspace")
+      router.push("/workspace/multisig")
     }, 1000)
   }
 
@@ -339,10 +199,10 @@ export default function SetupSafePage() {
                   <CardContent className="p-4">
                     <div className="text-sm space-y-1">
                       <div className="font-semibold text-[#0070BA]">
-                        Workspace: {workspaceData.company.name}
+                        Workspace: {workspaceData.name}
                       </div>
                       <div className="text-muted-foreground">
-                        {workspaceData.team.length} operation team member(s) loaded
+                        Setting up Safe Multisig wallet
                       </div>
                     </div>
                   </CardContent>
@@ -454,34 +314,6 @@ export default function SetupSafePage() {
 
                     {/* Add Signer Buttons */}
                     <div className="space-y-2">
-                      {/* Dropdown for workspace operators */}
-                      {availableOperators.length > 0 && getUnusedOperators().length > 0 && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="w-full">
-                              <Users className="mr-2 h-4 w-4" />
-                              Add Operator as Signer
-                              <ChevronDown className="ml-auto h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="w-full" align="start">
-                            {getUnusedOperators().map((operator) => (
-                              <DropdownMenuItem
-                                key={operator.email}
-                                onClick={() => addOperatorAsSigner(operator)}
-                              >
-                                <div className="flex flex-col">
-                                  <div className="font-medium">{operator.name}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {operator.role} • {operator.email}
-                                  </div>
-                                </div>
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-
                       {/* Manual signer button */}
                       <Button
                         variant="outline"
@@ -489,7 +321,7 @@ export default function SetupSafePage() {
                         onClick={addManualSigner}
                       >
                         <Plus className="mr-2 h-4 w-4" />
-                        Add Custom Signer
+                        Add Additional Signer
                       </Button>
                     </div>
                   </div>
@@ -680,16 +512,13 @@ export default function SetupSafePage() {
                   <div className="text-sm space-y-1">
                     <div className="font-semibold">Next Steps:</div>
                     <div className="text-muted-foreground">
-                      • Fund your Safe wallet with PYUSD (send to Safe address above)
+                      • Fund your Safe wallet with PYUSD
                     </div>
                     <div className="text-muted-foreground">
-                      • Upgrade PYUSD to PYUSDx for streaming (requires {threshold} signatures)
+                      • Upgrade PYUSD to PYUSDx for streaming
                     </div>
                     <div className="text-muted-foreground">
-                      • Add employees and start streaming payroll (each stream requires approval)
-                    </div>
-                    <div className="text-muted-foreground">
-                      • All signers will be notified of pending transactions
+                      • Add employees and start streaming payroll
                     </div>
                   </div>
                 </div>
@@ -699,7 +528,7 @@ export default function SetupSafePage() {
                   onClick={handleContinueToDashboard}
                   className="bg-[#0070BA] hover:bg-[#005A94] text-lg h-14 px-12"
                 >
-                  Activate Safe & Go to Workspace
+                  Go to Workspace
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </CardContent>

@@ -1,373 +1,477 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, Shield, Zap, Users, CheckCircle2, Clock, DollarSign, Info } from "lucide-react"
-import { useEffect, useState } from "react"
+import { ArrowRight, TrendingUp, Users, DollarSign, Shield, Zap, Clock, Globe, Building2, CheckCircle2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function Home() {
-  const [safeContext, setSafeContext] = useState<any>(null)
-  const [isInSafe, setIsInSafe] = useState(false)
-
-  useEffect(() => {
-    // Check if we're in Safe context
-    const checkSafeContext = () => {
-      const inSafe = window.parent !== window
-      setIsInSafe(inSafe)
-
-      // Check for Safe context info
-      const safeInfo = (window as any).__SAFE_CONTEXT__
-      if (safeInfo) {
-        setSafeContext(safeInfo)
-      }
-    }
-
-    checkSafeContext()
-
-    // Check periodically for Safe context updates
-    const interval = setInterval(checkSafeContext, 1000)
-    return () => clearInterval(interval)
-  }, [])
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      {/* Safe App Status */}
-      {isInSafe && (
-        <div className="bg-green-50 border-b border-green-200">
-          <div className="container mx-auto px-6 py-3">
-            <div className="flex items-center gap-2 text-green-800">
-              <CheckCircle2 className="h-5 w-5" />
-              <span className="font-medium">Safe App Connected</span>
-              {safeContext && (
-                <span className="text-sm">
-                  Safe: {safeContext.safeAddress.slice(0, 10)}... | Chain: {safeContext.chainId}
-                </span>
-              )}
+    <div className="min-h-screen bg-white">
+      {/* Navigation */}
+      <nav className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-12">
+              <Link href="/" className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-[#0070BA] rounded-lg flex items-center justify-center">
+                  <DollarSign className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-xl font-bold text-gray-900">SafeStream</span>
+              </Link>
+              <div className="hidden md:flex items-center gap-8">
+                <Link href="#features" className="text-sm font-medium text-gray-600 hover:text-[#0070BA] transition-colors">
+                  Features
+                </Link>
+                <Link href="#how-it-works" className="text-sm font-medium text-gray-600 hover:text-[#0070BA] transition-colors">
+                  How It Works
+                </Link>
+                <Link href="#security" className="text-sm font-medium text-gray-600 hover:text-[#0070BA] transition-colors">
+                  Security
+                </Link>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Link href="/workspace">
+                <Button className="bg-[#0070BA] hover:bg-[#005A94] text-white shadow-sm">
+                  Get Started
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
-      )}
-
-      {!isInSafe && (
-        <div className="bg-blue-50 border-b border-blue-200">
-          <div className="container mx-auto px-6 py-3">
-            <div className="flex items-center gap-2 text-blue-800">
-              <Info className="h-5 w-5" />
-              <span className="font-medium">Safe App Integration Available</span>
-              <span className="text-sm">
-                Add this app to your Safe at: {typeof window !== 'undefined' ? window.location.origin : 'your-domain.com'}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+      </nav>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-6 py-20">
-        <div className="text-center space-y-8 max-w-4xl mx-auto">
-          <div className="inline-block px-4 py-2 bg-[#0070BA]/10 border border-[#0070BA]/20 rounded-full">
-            <span className="text-sm font-medium text-[#0070BA]">
-              Powered by PayPal USD & Superfluid
-            </span>
+      <section className="container mx-auto px-6 py-24 lg:py-32">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Left Column - Content */}
+            <div className="space-y-8">
+              {/* Trust Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full">
+                <Shield className="h-4 w-4 text-[#0070BA]" />
+                <span className="text-sm font-medium text-[#0070BA]">
+                  Powered by PayPal USD & Superfluid
+                </span>
+              </div>
+
+              {/* Headline */}
+              <div className="space-y-4">
+                <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight leading-tight">
+                  Real-Time Payroll
+                  <span className="block text-[#0070BA]">Streaming Platform</span>
+                </h1>
+                <p className="text-xl text-gray-600 leading-relaxed">
+                  Stream PYUSD payments to your team in real-time using Superfluid Protocol. 
+                  Built for ETHGlobal hackathon with PayPal USD integration.
+                </p>
+              </div>
+
+              {/* CTAs */}
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <Link href="/workspace">
+                  <Button size="lg" className="bg-[#0070BA] hover:bg-[#005A94] text-white px-8 h-12 text-base font-medium shadow-sm">
+                    Try Demo
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link href="#how-it-works">
+                  <Button size="lg" variant="outline" className="border-2 border-gray-300 text-gray-700 hover:border-[#0070BA] hover:text-[#0070BA] px-8 h-12 text-base font-medium">
+                    Learn More
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Tech Stack */}
+              <div className="flex flex-wrap items-center gap-8 pt-8 border-t border-gray-200">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <span className="text-sm text-gray-600 font-medium">Superfluid Protocol</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <span className="text-sm text-gray-600 font-medium">Safe Multisig</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <span className="text-sm text-gray-600 font-medium">PYUSD Stablecoin</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Tech Stack */}
+            <div className="grid grid-cols-2 gap-6">
+              <Card className="border-2 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <DollarSign className="h-8 w-8 text-[#0070BA] mb-3" />
+                  <div className="text-2xl font-bold text-gray-900 mb-1">PYUSD</div>
+                  <div className="text-sm text-gray-600">PayPal Stablecoin</div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <Shield className="h-8 w-8 text-[#0070BA] mb-3" />
+                  <div className="text-2xl font-bold text-gray-900 mb-1">Safe</div>
+                  <div className="text-sm text-gray-600">Multisig Wallet</div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <Zap className="h-8 w-8 text-[#0070BA] mb-3" />
+                  <div className="text-2xl font-bold text-gray-900 mb-1">Superfluid</div>
+                  <div className="text-sm text-gray-600">Streaming Protocol</div>
+                </CardContent>
+              </Card>
+
+          <Card className="border-2 border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <Globe className="h-8 w-8 text-[#0070BA] mb-3" />
+              <div className="text-2xl font-bold text-gray-900 mb-1">Trustless</div>
+              <div className="text-sm text-gray-600">No Intermediaries</div>
+            </CardContent>
+          </Card>
+            </div>
           </div>
-
-          <h1 className="text-6xl md:text-7xl font-bold tracking-tight">
-            Real-Time Stablecoin
-            <span className="block bg-gradient-to-r from-[#0070BA] to-[#009CDE] bg-clip-text text-transparent">
-              Payroll Streaming
-            </span>
-          </h1>
-
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Pay your employees every second they work. Built with Safe multisig security
-            and PYUSD stablecoin for enterprise payroll operations.
-          </p>
-
-          <div className="flex gap-4 justify-center">
-            <Link href="/register">
-              <Button size="lg" className="bg-[#0070BA] hover:bg-[#005A94] text-lg h-14 px-8">
-                Start Your Workspace
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button size="lg" variant="outline" className="text-lg h-14 px-8">
-                View Demo
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-8 mt-20 max-w-4xl mx-auto">
-          <Card className="border-2">
-            <CardContent className="pt-6 text-center">
-              <div className="text-4xl font-bold text-[#0070BA]">$0</div>
-              <div className="text-sm text-muted-foreground mt-2">Setup Fees</div>
-            </CardContent>
-          </Card>
-          <Card className="border-2">
-            <CardContent className="pt-6 text-center">
-              <div className="text-4xl font-bold text-[#0070BA]">24/7</div>
-              <div className="text-sm text-muted-foreground mt-2">Streaming</div>
-            </CardContent>
-          </Card>
-          <Card className="border-2">
-            <CardContent className="pt-6 text-center">
-              <div className="text-4xl font-bold text-[#0070BA]">100%</div>
-              <div className="text-sm text-muted-foreground mt-2">Transparent</div>
-            </CardContent>
-          </Card>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="container mx-auto px-6 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Why SafeStream?</h2>
-          <p className="text-xl text-muted-foreground">
-            Modern payroll for modern teams
-          </p>
-        </div>
+      <section id="features" className="bg-gray-50 py-24">
+        <div className="container mx-auto px-6">
+          <div className="max-w-7xl mx-auto">
+            {/* Section Header */}
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                What We Built
+              </h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                ETHGlobal hackathon project showcasing real-time payroll streaming
+              </p>
+            </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <Card className="border-2 hover:border-[#0070BA]/50 transition-colors">
-            <CardHeader>
-              <div className="w-12 h-12 bg-[#0070BA]/10 rounded-lg flex items-center justify-center mb-4">
-                <Zap className="h-6 w-6 text-[#0070BA]" />
-              </div>
-              <CardTitle>Real-Time Streaming</CardTitle>
-              <CardDescription>
-                Money flows continuously to employees. No more waiting for payday -
-                access earnings as they&apos;re earned.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+            {/* Features Grid */}
+            <div className="grid md:grid-cols-3 gap-8">
+              <Card className="border-2 border-gray-200 shadow-sm hover:shadow-lg hover:border-[#0070BA] transition-all bg-white">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                    <Clock className="h-6 w-6 text-[#0070BA]" />
+                  </div>
+                  <CardTitle className="text-gray-900 text-xl">Real-Time Streaming</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 leading-relaxed">
+                    Continuous payment streaming using Superfluid Protocol. Payments flow every second instead of traditional batch processing.
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card className="border-2 hover:border-[#0070BA]/50 transition-colors">
-            <CardHeader>
-              <div className="w-12 h-12 bg-[#0070BA]/10 rounded-lg flex items-center justify-center mb-4">
-                <Shield className="h-6 w-6 text-[#0070BA]" />
-              </div>
-              <CardTitle>Safe Multisig Security</CardTitle>
-              <CardDescription>
-                Enterprise-grade security with Gnosis Safe. Multiple signers required
-                for all payroll operations.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+              <Card className="border-2 border-gray-200 shadow-sm hover:shadow-lg hover:border-[#0070BA] transition-all bg-white">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                    <DollarSign className="h-6 w-6 text-[#0070BA]" />
+                  </div>
+                  <CardTitle className="text-gray-900 text-xl">PYUSD Stablecoin</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 leading-relaxed">
+                    Integration with PayPal USD stablecoin for predictable value. Built specifically for the PayPal sponsor track.
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card className="border-2 hover:border-[#0070BA]/50 transition-colors">
-            <CardHeader>
-              <div className="w-12 h-12 bg-[#0070BA]/10 rounded-lg flex items-center justify-center mb-4">
-                <Users className="h-6 w-6 text-[#0070BA]" />
-              </div>
-              <CardTitle>Team Collaboration</CardTitle>
-              <CardDescription>
-                Invite operation team members as signers. Approve payroll changes
-                together with built-in governance.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+              <Card className="border-2 border-gray-200 shadow-sm hover:shadow-lg hover:border-[#0070BA] transition-all bg-white">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                    <Shield className="h-6 w-6 text-[#0070BA]" />
+                  </div>
+                  <CardTitle className="text-gray-900 text-xl">Safe Multisig</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 leading-relaxed">
+                    Optional Safe multisig wallet integration for team-managed payroll. All transactions require multiple approvals.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-gray-200 shadow-sm hover:shadow-lg hover:border-[#0070BA] transition-all bg-white">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                    <Zap className="h-6 w-6 text-[#0070BA]" />
+                  </div>
+                  <CardTitle className="text-gray-900 text-xl">Simple Setup</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 leading-relaxed">
+                    Connect your wallet, add team members, and configure payment streams. Designed for ease of use.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-gray-200 shadow-sm hover:shadow-lg hover:border-[#0070BA] transition-all bg-white">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                    <TrendingUp className="h-6 w-6 text-[#0070BA]" />
+                  </div>
+                  <CardTitle className="text-gray-900 text-xl">Cost Optimized</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 leading-relaxed">
+                    Efficient smart contract design for reduced transaction costs. Optimized for continuous streaming.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-gray-200 shadow-sm hover:shadow-lg hover:border-[#0070BA] transition-all bg-white">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                    <Users className="h-6 w-6 text-[#0070BA]" />
+                  </div>
+                  <CardTitle className="text-gray-900 text-xl">Workspace Management</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 leading-relaxed">
+                    Organize teams with workspace-based structure. Support for both single wallet and multisig configurations.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* How It Works Section */}
-      <section className="container mx-auto px-6 py-20 bg-muted/30">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">How It Works</h2>
-          <p className="text-xl text-muted-foreground">
-            Get started in 4 simple steps
-          </p>
-        </div>
+      <section id="how-it-works" className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="max-w-7xl mx-auto">
+            {/* Section Header */}
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                How It Works
+              </h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Simple flow to demonstrate real-time payroll streaming
+              </p>
+            </div>
 
-        <div className="max-w-4xl mx-auto space-y-8">
-          <Card className="border-2">
-            <CardHeader>
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-[#0070BA] text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
-                  1
-                </div>
-                <div>
-                  <CardTitle>Register Your Workspace</CardTitle>
-                  <CardDescription className="mt-2">
-                    Create your company workspace and invite your operation team members
-                    who will help manage payroll.
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-
-          <Card className="border-2">
-            <CardHeader>
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-[#0070BA] text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
-                  2
-                </div>
-                <div>
-                  <CardTitle>Create Safe Multisig Wallet</CardTitle>
-                  <CardDescription className="mt-2">
-                    Set up a Gnosis Safe wallet with your operation team as signers.
-                    Configure signature threshold for security.
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-
-          <Card className="border-2">
-            <CardHeader>
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-[#0070BA] text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
-                  3
-                </div>
-                <div>
-                  <CardTitle>Add Your Team</CardTitle>
-                  <CardDescription className="mt-2">
-                    Add employees, set their salaries, and configure payment schedules.
-                    All changes require multisig approval.
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-
-          <Card className="border-2">
-            <CardHeader>
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-[#0070BA] text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
-                  4
-                </div>
-                <div>
-                  <CardTitle>Start Streaming</CardTitle>
-                  <CardDescription className="mt-2">
-                    Approve streams with your operation team signatures. Money flows
-                    continuously to employees in real-time.
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        </div>
-      </section>
-
-      {/* Benefits Section */}
-      <section className="container mx-auto px-6 py-20">
-        <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto items-center">
-          <div>
-            <h2 className="text-4xl font-bold mb-6">Benefits for Everyone</h2>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-6 w-6 text-[#0070BA] flex-shrink-0 mt-1" />
-                <div>
-                  <div className="font-semibold">For Employers</div>
-                  <div className="text-sm text-muted-foreground">
-                    Reduce payroll overhead, increase transparency, and attract top talent
-                    with modern payment options.
+            {/* Steps */}
+            <div className="grid md:grid-cols-3 gap-12">
+              {/* Step 1 */}
+              <div className="relative">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 bg-[#0070BA] text-white rounded-xl flex items-center justify-center text-xl font-bold flex-shrink-0">
+                    1
                   </div>
+                  <h3 className="text-2xl font-bold text-gray-900">Connect Wallet</h3>
                 </div>
+                <p className="text-gray-600 leading-relaxed mb-4">
+                  Connect your wallet using RainbowKit. Choose between single wallet or Safe multisig setup.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <span>RainbowKit integration</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <span>Safe Protocol support</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <span>On-chain transparency</span>
+                  </li>
+                </ul>
               </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-6 w-6 text-[#0070BA] flex-shrink-0 mt-1" />
-                <div>
-                  <div className="font-semibold">For Employees</div>
-                  <div className="text-sm text-muted-foreground">
-                    Access earnings instantly, better cash flow management, and complete
-                    transparency of payment streams.
+
+              {/* Step 2 */}
+              <div className="relative">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 bg-[#0070BA] text-white rounded-xl flex items-center justify-center text-xl font-bold flex-shrink-0">
+                    2
                   </div>
+                  <h3 className="text-2xl font-bold text-gray-900">Add Team</h3>
                 </div>
+                <p className="text-gray-600 leading-relaxed mb-4">
+                  Add team members with wallet addresses and configure their PYUSD payment amounts.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <span>Employee management</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <span>Salary configuration</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <span>Zustand state management</span>
+                  </li>
+                </ul>
               </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-6 w-6 text-[#0070BA] flex-shrink-0 mt-1" />
-                <div>
-                  <div className="font-semibold">For Finance Teams</div>
-                  <div className="text-sm text-muted-foreground">
-                    Automated streaming with multisig security. Real-time visibility and
-                    audit trails for compliance.
+
+              {/* Step 3 */}
+              <div className="relative">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 bg-[#0070BA] text-white rounded-xl flex items-center justify-center text-xl font-bold flex-shrink-0">
+                    3
                   </div>
+                  <h3 className="text-2xl font-bold text-gray-900">Start Streaming</h3>
                 </div>
+                <p className="text-gray-600 leading-relaxed mb-4">
+                  Initiate Superfluid payment streams. PYUSD flows continuously to recipients in real-time.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <span>Superfluid CFA streams</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <span>Real-time payment flow</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <span>On-chain transparency</span>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
-
-          <Card className="border-2 p-8">
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <Clock className="h-8 w-8 text-[#0070BA]" />
-                <div>
-                  <div className="font-bold text-lg">Save Time</div>
-                  <div className="text-sm text-muted-foreground">
-                    Automate payroll processing
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <DollarSign className="h-8 w-8 text-[#0070BA]" />
-                <div>
-                  <div className="font-bold text-lg">Reduce Costs</div>
-                  <div className="text-sm text-muted-foreground">
-                    No intermediary fees
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <Shield className="h-8 w-8 text-[#0070BA]" />
-                <div>
-                  <div className="font-bold text-lg">Stay Secure</div>
-                  <div className="text-sm text-muted-foreground">
-                    Enterprise-grade protection
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
         </div>
       </section>
 
+
+
       {/* CTA Section */}
-      <section className="container mx-auto px-6 py-20">
-        <Card className="border-2 bg-gradient-to-r from-[#0070BA]/10 to-[#009CDE]/10">
-          <CardContent className="p-12 text-center">
-            <h2 className="text-4xl font-bold mb-4">Ready to Transform Your Payroll?</h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join the future of real-time payroll streaming. Set up your workspace
-              in minutes and start streaming today.
-            </p>
-            <Link href="/register">
-              <Button size="lg" className="bg-[#0070BA] hover:bg-[#005A94] text-lg h-14 px-8">
-                Get Started Now
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto">
+            <Card className="border-2 border-[#0070BA] shadow-xl bg-gradient-to-br from-blue-50 to-white p-12 text-center relative overflow-hidden">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-5">
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#0070BA_1px,transparent_1px),linear-gradient(to_bottom,#0070BA_1px,transparent_1px)] bg-[size:20px_20px]" />
+              </div>
+
+              <div className="relative z-10 space-y-6">
+                <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+                  Try the Demo
+                </h2>
+                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                  Experience real-time PYUSD payroll streaming. Built for ETHGlobal hackathon showcasing PayPal USD integration.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                  <Link href="/workspace">
+                    <Button size="lg" className="bg-[#0070BA] hover:bg-[#005A94] text-white px-10 h-14 text-lg font-medium shadow-lg">
+                      Launch Demo
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                  <Link href="https://github.com/Molecular-Lab/LiquidStream-web">
+                    <Button size="lg" variant="outline" className="border-2 border-gray-300 text-gray-700 hover:border-[#0070BA] hover:text-[#0070BA] px-10 h-14 text-lg font-medium">
+                      View Source
+                    </Button>
+                  </Link>
+                </div>
+                
+                {/* Tech Badges */}
+                <div className="flex flex-wrap items-center justify-center gap-6 pt-8 border-t border-gray-200 mt-8">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    <span className="text-sm text-gray-600">Open Source</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    <span className="text-sm text-gray-600">Hackathon Project</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    <span className="text-sm text-gray-600">PayPal Sponsor Track</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              © 2025 SafeStream. Powered by PayPal USD & Superfluid.
+      <footer className="bg-gray-900 text-white py-16">
+        <div className="container mx-auto px-6">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            {/* Company Info */}
+            <div className="md:col-span-2">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 bg-[#0070BA] rounded-lg flex items-center justify-center">
+                  <DollarSign className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-xl font-bold">SafeStream</span>
+              </div>
+              <p className="text-gray-400 mb-6 max-w-md">
+                Enterprise payroll streaming platform powered by PayPal USD and Superfluid Protocol. 
+                Modern infrastructure for modern teams.
+              </p>
+              <div className="flex gap-4">
+                <Link href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="sr-only">Twitter</span>
+                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                  </svg>
+                </Link>
+                <Link href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="sr-only">GitHub</span>
+                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+                  </svg>
+                </Link>
+                <Link href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <span className="sr-only">LinkedIn</span>
+                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path fillRule="evenodd" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" clipRule="evenodd" />
+                  </svg>
+                </Link>
+              </div>
             </div>
-            <div className="flex gap-6 text-sm">
-              <Link href="/workspace/single" className="hover:text-[#0070BA] transition-colors">
-                Single Wallet
-              </Link>
-              <Link href="/workspace/multisig" className="hover:text-[#0070BA] transition-colors">
-                Safe Multisig
-              </Link>
-              <Link href="/register" className="hover:text-[#0070BA] transition-colors">
-                Register
-              </Link>
+
+            {/* Product */}
+            <div>
+              <h4 className="font-semibold mb-4">Product</h4>
+              <ul className="space-y-3 text-gray-400">
+                <li><Link href="#features" className="hover:text-white transition-colors">Features</Link></li>
+                <li><Link href="#how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
+                <li><Link href="#security" className="hover:text-white transition-colors">Security</Link></li>
+                <li><Link href="/workspace" className="hover:text-white transition-colors">Get Started</Link></li>
+              </ul>
+            </div>
+
+            {/* Company */}
+            <div>
+              <h4 className="font-semibold mb-4">Company</h4>
+              <ul className="space-y-3 text-gray-400">
+                <li><Link href="#" className="hover:text-white transition-colors">About</Link></li>
+                <li><Link href="#" className="hover:text-white transition-colors">Blog</Link></li>
+                <li><Link href="#" className="hover:text-white transition-colors">Careers</Link></li>
+                <li><Link href="#" className="hover:text-white transition-colors">Contact</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-gray-400">
+              © 2025 SafeStream. All rights reserved.
+            </div>
+            <div className="flex gap-6 text-sm text-gray-400">
+              <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
+              <Link href="#" className="hover:text-white transition-colors">Cookie Policy</Link>
             </div>
           </div>
         </div>
       </footer>
-
     </div>
   )
 }
