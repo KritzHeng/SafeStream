@@ -5,6 +5,7 @@ import { useAccount, useWriteContract } from "wagmi"
 import { parseAbi } from "viem"
 
 import { PYUSD_ADDRESS, PYUSDX_ADDRESS, SUPER_TOKEN_ABI } from "@/lib/contract"
+import { openBlockscout } from "@/hooks/use-blockscout"
 
 const PYUSD_ABI = parseAbi([
     'function approve(address spender, uint256 amount) returns (bool)',
@@ -102,13 +103,11 @@ export const useSingleWalletTokenOperations = () => {
             }
 
             toast.success(`${operationName} completed! ✅`, {
-                description: `${description} - Transaction: ${result.hash.slice(0, 10)}...`,
+                description: description,
                 duration: 5000,
                 action: {
                     label: "View on Explorer",
-                    onClick: () => {
-                        window.open(`https://sepolia.etherscan.io/tx/${result.hash}`, '_blank')
-                    }
+                    onClick: () => openBlockscout("tx", result.hash, "sepolia")
                 }
             })
         },

@@ -2,7 +2,7 @@
 
 import { Address, formatEther } from "viem"
 import { useAccount } from "wagmi"
-import { Copy, ExternalLink } from "lucide-react"
+import { Copy } from "lucide-react"
 import { toast } from "sonner"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -27,10 +27,6 @@ export function StreamInfoCard({ sender, receiver, token = PYUSDX_ADDRESS, class
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text)
     toast.success(`${label} copied to clipboard`)
-  }
-
-  const openEtherscan = (address: string) => {
-    window.open(`https://sepolia.etherscan.io/address/${address}`, "_blank")
   }
 
   if (loading) {
@@ -93,13 +89,6 @@ export function StreamInfoCard({ sender, receiver, token = PYUSDX_ADDRESS, class
               >
                 <Copy className="h-4 w-4" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => openEtherscan(effectiveSender!)}
-              >
-                <ExternalLink className="h-4 w-4" />
-              </Button>
             </div>
           </div>
 
@@ -115,13 +104,6 @@ export function StreamInfoCard({ sender, receiver, token = PYUSDX_ADDRESS, class
                 onClick={() => copyToClipboard(receiver, "Receiver address")}
               >
                 <Copy className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => openEtherscan(receiver)}
-              >
-                <ExternalLink className="h-4 w-4" />
               </Button>
             </div>
           </div>

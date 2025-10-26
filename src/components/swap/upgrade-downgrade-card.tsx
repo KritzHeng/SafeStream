@@ -14,8 +14,10 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { PYUSD_ADDRESS, PYUSDX_ADDRESS, SUPER_TOKEN_ABI } from "@/lib/contract"
 import { useSafe } from "@/store/safe"
+import { useWalletMode } from "@/store/wallet-mode"
 import { useSafeTokenOperations } from "@/hooks/use-safe-operations"
 import { useSafeAppsTokenOperations, useConnectedSafeInfo } from "@/hooks/use-safe-apps-sdk"
+import { openBlockscout } from "@/hooks/use-blockscout"
 import { parseAbi } from "viem"
 
 const PYUSD_ABI = parseAbi([
@@ -36,10 +38,14 @@ export function UpgradeDowngradeCard() {
   const { writeContractAsync } = useWriteContract()
   const publicClient = usePublicClient()
   const { safeConfig, isSigner } = useSafe()
+  const { isSafeMode } = useWalletMode()
   const { safeInfo, isInSafeContext } = useConnectedSafeInfo()
   const { mutate: createSafeTokenTransaction, isPending: isSafeOperationPending } = useSafeTokenOperations()
   const { mutate: createSafeAppsTransaction, isPending: isSafeAppsPending } = useSafeAppsTokenOperations()
 
+  // Check if user is in Safe mode (not just if Safe is configured)
+  const isInSafeMode = isSafeMode()
+  
   // Prioritize safe.global connection
   const activeSafeConfig = isInSafeContext && safeInfo ? {
     address: safeInfo.safeAddress,
@@ -54,8 +60,8 @@ export function UpgradeDowngradeCard() {
   const isSafeConfigured = !!activeSafeConfig?.address
   const isUserSigner = address ? isSigner(address) : false
 
-  // Use Safe address or connected wallet address for balance queries
-  const queryAddress = (activeSafeConfig?.address || address) as Address | undefined
+  // Use Safe address ONLY if in Safe mode, otherwise use connected wallet
+  const queryAddress = (isInSafeMode && activeSafeConfig?.address ? activeSafeConfig.address : address) as Address | undefined
 
   // Read PYUSD balance (from Safe or connected wallet)
   const { data: pyusdBalance } = useReadContract({
@@ -91,7 +97,8 @@ export function UpgradeDowngradeCard() {
       setIsProcessing(true)
       const amountInUnits = parseUnits(amount, 6) // PYUSD has 6 decimals
 
-      if (isSafeConfigured) {
+      // Check wallet mode: Safe mode vs Single wallet mode
+      if (isInSafeMode && isSafeConfigured) {
         // Safe multisig workflow using Safe Apps SDK
         if (!isUserSigner) {
           toast.error("You are not authorized to create transactions for this Safe")
@@ -106,6 +113,7 @@ export function UpgradeDowngradeCard() {
         const needsApproval = currentAllowance < amountInUnits
 
         console.log("Safe upgrade process:", {
+          mode: "Safe",
           amountToUpgrade: amount,
           amountInUnits: amountInUnits.toString(),
           currentAllowance: currentAllowance.toString(),
@@ -148,7 +156,13 @@ export function UpgradeDowngradeCard() {
         })
 
       } else {
-        // Direct wallet workflow (fallback)
+        // Direct wallet workflow (single wallet mode)
+        console.log("Single wallet upgrade process:", {
+          mode: "Single Wallet",
+          amountToUpgrade: amount,
+          walletAddress: address
+        })
+
         // Check if we need approval
         if (!allowance || allowance < amountInUnits) {
           toast.info("Step 1/2: Approving PYUSD...")
@@ -169,7 +183,12 @@ export function UpgradeDowngradeCard() {
           })
 
           if (receipt.status === 'success') {
-            toast.success("Approval confirmed! ✅")
+            toast.success("Approval confirmed! ✅", {
+              action: {
+                label: "View on Explorer",
+                onClick: () => openBlockscout("tx", approveTx, "sepolia")
+              }
+            })
             await refetchAllowance()
             await new Promise(resolve => setTimeout(resolve, 1000))
           } else {
@@ -201,6 +220,10 @@ export function UpgradeDowngradeCard() {
         if (upgradeReceipt.status === 'success') {
           toast.success("Upgrade successful! 🎉", {
             description: `Wrapped ${amount} PYUSD to PYUSDx`,
+            action: {
+              label: "View on Explorer",
+              onClick: () => openBlockscout("tx", upgradeTx, "sepolia")
+            }
           })
         } else {
           throw new Error("Upgrade transaction failed")
@@ -228,7 +251,8 @@ export function UpgradeDowngradeCard() {
       setIsProcessing(true)
       const amountInUnits = parseUnits(amount, 18) // PYUSDx has 18 decimals
 
-      if (isSafeConfigured) {
+      // Check wallet mode: Safe mode vs Single wallet mode
+      if (isInSafeMode && isSafeConfigured) {
         // Safe multisig workflow using Safe Apps SDK
         if (!isUserSigner) {
           toast.error("You are not authorized to create transactions for this Safe")
@@ -237,6 +261,7 @@ export function UpgradeDowngradeCard() {
 
         // Create downgrade transaction using Safe Apps SDK
         console.log("Creating Safe downgrade transaction via Safe Apps SDK:", {
+          mode: "Safe",
           operation: "downgrade",
           tokenAddress: PYUSDX_ADDRESS,
           amount: amountInUnits.toString(),
@@ -251,7 +276,13 @@ export function UpgradeDowngradeCard() {
         })
 
       } else {
-        // Direct wallet workflow (fallback)
+        // Direct wallet workflow (single wallet mode)
+        console.log("Single wallet downgrade process:", {
+          mode: "Single Wallet",
+          amountToDowngrade: amount,
+          walletAddress: address
+        })
+
         toast.info("Downgrading PYUSDx to PYUSD...")
 
         const downgradeTx = await writeContractAsync({
@@ -263,6 +294,10 @@ export function UpgradeDowngradeCard() {
 
         toast.success("Downgrade successful! 🎉", {
           description: `Unwrapped ${amount} PYUSDx to PYUSD`,
+          action: {
+            label: "View on Explorer",
+            onClick: () => openBlockscout("tx", downgradeTx, "sepolia")
+          }
         })
       }
 
@@ -316,28 +351,28 @@ export function UpgradeDowngradeCard() {
         <CardTitle className="flex items-center gap-2">
           <ArrowDownUp className="h-5 w-5" />
           Swap Tokens
-          {isSafeConfigured ? (
+          {isInSafeMode && isSafeConfigured ? (
             <Badge variant="secondary" className="text-xs">
               <Shield className="h-3 w-3 mr-1" />
-              Safe Protected
+              Safe Mode
             </Badge>
           ) : (
             <Badge variant="outline" className="text-xs">
               <AlertTriangle className="h-3 w-3 mr-1" />
-              Direct Wallet
+              Single Wallet Mode
             </Badge>
           )}
         </CardTitle>
         <CardDescription>
-          {isSafeConfigured
+          {isInSafeMode && isSafeConfigured
             ? `Create proposals to upgrade PYUSD to Streamable PYUSD or downgrade back to regular PYUSD - requires ${activeSafeConfig.threshold}/${activeSafeConfig.signers.length} signatures`
-            : "Upgrade PYUSD to Streamable PYUSD or downgrade back to regular PYUSD"
+            : "Upgrade PYUSD to Streamable PYUSD or downgrade back to regular PYUSD using your connected wallet"
           }
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Safe Info Banner */}
-        {isSafeConfigured && (
+        {/* Safe Info Banner - Only show in Safe mode */}
+        {isInSafeMode && isSafeConfigured && (
           <div className="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20 p-4">
             <div className="flex items-start gap-3">
               <Shield className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -469,7 +504,7 @@ export function UpgradeDowngradeCard() {
           className="w-full"
           size="lg"
           onClick={isUpgradeMode ? handleUpgrade : handleDowngrade}
-          disabled={!address || !amount || parseFloat(amount) <= 0 || isApproving || isProcessing || isSafeAppsPending || (isSafeConfigured && !isUserSigner)}
+          disabled={!address || !amount || parseFloat(amount) <= 0 || isApproving || isProcessing || isSafeAppsPending || (isInSafeMode && isSafeConfigured && !isUserSigner)}
         >
           {isApproving ? (
             <>
@@ -479,17 +514,17 @@ export function UpgradeDowngradeCard() {
           ) : isProcessing || isSafeAppsPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isSafeConfigured ? "Creating Safe Transaction..." : "Processing..."}
+              {isInSafeMode && isSafeConfigured ? "Creating Safe Transaction..." : "Processing..."}
             </>
-          ) : isSafeConfigured ? (
-            isUpgradeMode ? "Create Upgrade Transaction" : "Create Downgrade Transaction"
+          ) : isInSafeMode && isSafeConfigured ? (
+            isUpgradeMode ? "Create Safe Upgrade Proposal" : "Create Safe Downgrade Proposal"
           ) : (
             isUpgradeMode ? "Upgrade to Streamable PYUSD" : "Downgrade to PYUSD"
           )}
         </Button>
 
         {/* Authorization Warning for Safe */}
-        {isSafeConfigured && !isUserSigner && (
+        {isInSafeMode && isSafeConfigured && !isUserSigner && (
           <div className="text-xs text-orange-600 bg-orange-50 dark:bg-orange-950/20 p-3 rounded-lg border border-orange-200 dark:border-orange-800">
             ⚠️ You are not authorized to create transactions for this Safe wallet. Only configured signers can propose token operations.
           </div>
@@ -498,15 +533,15 @@ export function UpgradeDowngradeCard() {
         {/* Info Warning */}
         {isUpgradeMode && (
           <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-            💡 {isSafeConfigured
+            💡 {isInSafeMode && isSafeConfigured
               ? "Upgrading converts your PYUSD into Streamable PYUSD (PYUSDx SuperToken), enabling real-time streaming capabilities after multisig approval."
-              : "Upgrading converts your PYUSD into Streamable PYUSD (PYUSDx SuperToken), enabling real-time streaming capabilities."
+              : "Upgrading converts your PYUSD into Streamable PYUSD (PYUSDx SuperToken), enabling real-time streaming capabilities instantly."
             }
           </div>
         )}
 
         {/* Safe Apps SDK Info */}
-        {isSafeConfigured && (
+        {isInSafeMode && isSafeConfigured && (
           <div className="text-xs text-blue-600 bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
             🔗 This app uses Safe Apps SDK to create transactions directly in your Safe interface. Transactions will appear in your Safe&apos;s queue for signing and execution.
             {isUpgradeMode && (
